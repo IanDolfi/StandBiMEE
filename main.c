@@ -3,7 +3,8 @@
  * @file    ${main.c}
  * @author  ${Ian Dolfi}
  * @date    ${05/30/2024}
- * @brief   Main code execution in the RIT StandBiMEE project
+ * @brief   Main code execution in the RIT StandBiMEE project.
+ *          Dev branch
  ********************************************************************************
  */
 
