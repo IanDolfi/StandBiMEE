@@ -13,7 +13,7 @@
 #include "Stand_Functions.h"
 #include "odrive.h"
 
-char* testString = "TESTab1\n"
+char* initString = "TESTab1\n"
         "w config.dc_max_positive_current 10\n"
         "w axis0.current_soft_max 9\n"
         "w axis0.config.motor.current_hard_max 10\n"
@@ -31,21 +31,22 @@ char A[9] = {0b1, 0b11, 0b111, 0b1111, 0b11111, 0b111111, 0b1111111, 0b11111111,
 volatile char test = 0;
 volatile char* testPointer;
 
-volatile int Bat, Speed, JoyX, JoyY, IRL, IRR;
-unsigned int lastSpeed = 0;
+volatile int Bat, Speed, JoyX, JoyY, IRL, IRR;  //ADC values
+unsigned int lastSpeed = 0;                     //I believe this is unused
 
-int speedX, speedY;
-char dirX, dirY, dir0, dir1;
-int motor0Speed = 0, motor1Speed = 0;
-char motor0Dir, motor1Dir;
-int trim;
-char brake, stop, IREnable = 1, IRWarning = 0;
+int speedX, speedY;                     //Lateral speed and turning speed
+volatile char dirX, dirY, dir0, dir1;            //Lateral and turning directions (1 = forward or right, 0 = backwards or left)
+volatile int motor0Speed = 0, motor1Speed = 0;
+char motor0Dir, motor1Dir;                      //Unused
+volatile int trim;                                       //Turning trim caused by the RF remote. Resets when no direction button on the stander is pressed.
+volatile char brake, stop, IREnable = 1, IRWarning = 0;  //Brake an stop do generally the same thing under different conditions,
+                                                //IRWarning is if there is a drop or object in the way
 
-char nextButton, lastButton;
+char nextButton, lastButton;    //Direction button trackers
 
-char tx0busy = 0, tx1busy = 0;
+volatile char tx0busy = 0, tx1busy = 0;
 
-char tstStr[75] = {};
+char tstStr[75] = {};   //Unused
 
 unsigned char joyControl; //Flag for the joystick being the domminant control on this frame
 char message0[MAX_TX_SIZE], message1[MAX_TX_SIZE];
@@ -129,7 +130,7 @@ int main(void){
     testPointer = &test;
     setTestVar(testPointer);
 
-	sendString(testString, 0);
+	sendString(initString, 0);
 	while(1)
 	{
 	    while(!test)
@@ -189,17 +190,18 @@ int main(void){
     //  Initialize ODrives
     //----------------------
 
-    //Send a useless test string
-    sendString(testString, 0);
-    sendString(testString, 1);
+    //Send a string to both ODrives that initializes parameters on the ODrives
+    sendString(initString, 0);
+    sendString(initString, 1);
 
     while ((tx1busy) || (tx0busy))
     {
         _nop();
     }
 
-    sendString(testString, 0);
-    sendString(testString, 1);
+    //Redundancy
+    sendString(initString, 0);
+    sendString(initString, 1);
 
     while ((tx1busy) || (tx0busy))
     {
@@ -218,7 +220,7 @@ int main(void){
         _nop();
     }
 
-    //Send again just in case
+    //Redundancy
     odrive_setRamp(message0, 100);
     odrive_setRamp(message1, 100);
     sendString(message0, 0);
@@ -236,7 +238,7 @@ int main(void){
 
     while (1)
     {
-        //For debug. usually checked periodicaly by the RTC interrupt
+        //For debug. usually checked periodically by the RTC interrupt
         readBattSpeed();
         readJoys();
 
