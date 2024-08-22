@@ -55,6 +55,7 @@ char nullString[2] = {0,0};
 char RXString0[MAX_RX_SIZE] = {0}, RXString1[MAX_RX_SIZE] = {0};
 unsigned int RXIndex0 = 0, RXIndex1 = 0;
 unsigned int batteryVoltage;
+unsigned char battState = 4;
 
 char rx1Char, rx0Char;
 
@@ -321,6 +322,28 @@ void readIR()
     ADCCTL0 |= ADCENC | ADCSC;  //Start conversion
 }
 
+void interpretBatt()
+{
+    switch (battState)
+    {
+        case 3:
+            if (*ADC_Bat > BATTERY_THRESHOLD_HIGH) break;
+            else if (*ADC_Bat > BATTERY_THRESHOLD_MED){playSequence(MEDIUM_BATTERY, 0), battState = 2;}
+            else if (*ADC_Bat > BATTERY_THRESHOLD_LOW){playSequence(LOW_BATTERY, 0), battState = 1;}
+            else faultTrap();
+            break;
+        case 2:
+            if (*ADC_Bat > BATTERY_THRESHOLD_MED) break;
+            else if (*ADC_Bat > BATTERY_THRESHOLD_LOW){playSequence(LOW_BATTERY, 0), battState = 1;}
+            else faultTrap();
+            break;
+        case 1:
+            if (*ADC_Bat > BATTERY_THRESHOLD_LOW) break;
+            else faultTrap();
+            break;
+    }
+}
+
 
 void interpretIR()
 {
@@ -388,7 +411,7 @@ void calibrateCLK()
 
 void Software_Trim()
 {
-    //I do not know who wrote this code -Ian
+    //Pre-written code
     unsigned int oldDcoTap = 0xffff;
     unsigned int newDcoTap = 0xffff;
     unsigned int newDcoDelta = 0xffff;
@@ -950,6 +973,7 @@ __interrupt void ADC_ISR(void)
     {
         case ADCINCH_BATT:
             *ADC_Bat = ADCMEM0;
+            interpretBatt();
             break;
         case ADCINCH_SPEED:
             *ADC_Speed = ADCMEM0;

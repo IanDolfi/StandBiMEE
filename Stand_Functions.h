@@ -175,6 +175,15 @@ void readIR();
 
 
 /********************************************************************************
+* @brief    Notify the user if the battery level went down
+* @param    N/A
+* @return   N/A
+*********************************************************************************
+*/
+void interpretBatt();
+
+
+/********************************************************************************
 * @brief    Determine if the stander should stop due to IR readings
 * @param    N/A
 * @return   N/A
